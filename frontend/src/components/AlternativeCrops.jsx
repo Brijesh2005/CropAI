@@ -51,9 +51,10 @@ export default function AlternativeCrops({ recommendations = [], lang = 'kn', t 
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl overflow-hidden border border-slate-200 shrink-0 bg-slate-50">
                   <img
-                    src={profile?.primary_image || '/images/crops/coconut_real.jpg'}
+                    src={profile?.primary_image || '/images/crops/coconut_primary.jpg'}
                     alt={item.crop}
                     className="w-full h-full object-cover"
+                    onError={(e) => { e.currentTarget.src = '/images/crops/coconut_primary.jpg'; }}
                   />
                 </div>
 

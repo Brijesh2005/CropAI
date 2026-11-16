@@ -125,6 +125,7 @@ export default function CultivationGuide({ initialCrop = 'Arecanut' }) {
               src={crop.primary_image}
               alt={`${crop.name} plantation`}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              onError={(e) => { e.currentTarget.src = '/images/crops/arecanut_primary.jpg'; }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent flex flex-col justify-end p-5 text-white">
               <span className="text-xs font-semibold text-emerald-300">
@@ -189,6 +190,7 @@ export default function CultivationGuide({ initialCrop = 'Arecanut' }) {
                 src={crop.farm_image}
                 alt={`${crop.name} Field in Dakshina Kannada`}
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                onError={(e) => { e.currentTarget.src = crop.primary_image || '/images/crops/arecanut_primary.jpg'; }}
               />
             </div>
             <div className="p-3.5 text-center">
@@ -207,6 +209,7 @@ export default function CultivationGuide({ initialCrop = 'Arecanut' }) {
                 src={crop.nursery_image}
                 alt={`${crop.name} Nursery Saplings`}
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                onError={(e) => { e.currentTarget.src = crop.primary_image || '/images/crops/arecanut_primary.jpg'; }}
               />
             </div>
             <div className="p-3.5 text-center">
@@ -225,6 +228,7 @@ export default function CultivationGuide({ initialCrop = 'Arecanut' }) {
                 src={crop.harvest_image}
                 alt={`${crop.name} Harvest and Market`}
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                onError={(e) => { e.currentTarget.src = crop.primary_image || '/images/crops/arecanut_primary.jpg'; }}
               />
             </div>
             <div className="p-3.5 text-center">

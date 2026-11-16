@@ -125,9 +125,10 @@ export default function HistoryView({
                   <div className="flex items-center gap-3.5 mb-3">
                     <div className="w-14 h-14 rounded-xl overflow-hidden border border-slate-200 shrink-0 bg-slate-50">
                       <img
-                        src={profile?.primary_image || '/images/crops/arecanut_real.jpg'}
+                        src={profile?.primary_image || '/images/crops/arecanut_primary.jpg'}
                         alt={item.crop}
                         className="w-full h-full object-cover"
+                        onError={(e) => { e.currentTarget.src = '/images/crops/arecanut_primary.jpg'; }}
                       />
                     </div>
                     <div>

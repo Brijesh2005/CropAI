@@ -60,9 +60,10 @@ export default function AnswerCard({
       <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 items-center">
         <div className="sm:col-span-5 h-56 rounded-2xl overflow-hidden border border-emerald-200 shadow-sm relative group bg-emerald-50">
           <img
-            src={cropProfile?.primary_image || '/images/crops/arecanut_real.jpg'}
+            src={cropProfile?.primary_image || '/images/crops/arecanut_primary.jpg'}
             alt={enCropName}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            onError={(e) => { e.currentTarget.src = '/images/crops/arecanut_primary.jpg'; }}
           />
           <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent p-3 text-center text-xs text-white font-medium">
             {cropProfile?.scientific_name || enCropName}
