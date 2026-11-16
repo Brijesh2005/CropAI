@@ -13,8 +13,14 @@ import AuthModal from './components/AuthModal';
 import { Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' | 'analyze' | 'history' | 'models' | 'about'
-  const [analyzeStep, setAnalyzeStep] = useState('map'); // 'map' | 'scanning' | 'results'
+  const [activeTab, setActiveTab] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('tab') || 'dashboard';
+  }); // 'dashboard' | 'analyze' | 'history' | 'models' | 'about'
+  const [analyzeStep, setAnalyzeStep] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('step') || 'map';
+  }); // 'map' | 'scanning' | 'results'
 
   const [user, setUser] = useState(() => {
     try {
@@ -24,7 +30,10 @@ export default function App() {
       return null;
     }
   });
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('auth') === '1';
+  });
   const [authMode, setAuthMode] = useState('login');
 
   const [selectedCoords, setSelectedCoords] = useState({
@@ -58,7 +67,9 @@ export default function App() {
       .catch((err) => console.error("Error loading taluks:", err));
 
     // Run initial prediction for default location
-    executePrediction(12.7667, 75.2000, 'Puttur Agricultural Sector', 'Puttur', 2.34, false);
+    const params = new URLSearchParams(window.location.search);
+    const autoResults = params.get('step') === 'results';
+    executePrediction(12.7667, 75.2000, 'Puttur Agricultural Sector', 'Puttur', 2.34, autoResults);
   }, []);
 
   const executePrediction = async (lat, lon, place_name, taluk, area, shouldTransitionToResults = false) => {
@@ -124,8 +135,13 @@ export default function App() {
       });
 
       if (shouldTransitionToResults) {
-        // Show scanning animation briefly, then transition to results
-        setAnalyzeStep('scanning');
+        const queryParams = new URLSearchParams(window.location.search);
+        if (queryParams.get('step') === 'results') {
+          setAnalyzeStep('results');
+        } else {
+          // Show scanning animation briefly, then transition to results
+          setAnalyzeStep('scanning');
+        }
       }
     } catch (err) {
       console.error("Prediction failed:", err);

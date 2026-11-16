@@ -28,7 +28,10 @@ import LandBuyingGuide from './LandBuyingGuide';
 import { CROP_PROFILES, getCropProfile } from '../data/agriculturalData';
 
 export default function ResultsView({ prediction, currentArea, onReset }) {
-  const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'guide' | 'landscape' | 'legal' | 'buying'
+  const [activeTab, setActiveTab] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('resultTab') || 'overview';
+  }); // 'overview' | 'guide' | 'landscape' | 'legal' | 'buying'
   const [lang, setLang] = useState('kn'); // default to Kannada for local farmers, easy toggle to English
   const [animatedYield, setAnimatedYield] = useState(0);
 
