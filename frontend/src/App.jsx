@@ -9,11 +9,23 @@ import ModelsView from './components/ModelsView';
 import AboutView from './components/AboutView';
 import GeofenceModal from './components/GeofenceModal';
 import MetricsModal from './components/MetricsModal';
+import AuthModal from './components/AuthModal';
 import { Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' | 'analyze' | 'history' | 'models' | 'about'
   const [analyzeStep, setAnalyzeStep] = useState('map'); // 'map' | 'scanning' | 'results'
+
+  const [user, setUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('terravision_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState('login');
 
   const [selectedCoords, setSelectedCoords] = useState({
     lat: 12.7667,
@@ -154,8 +166,32 @@ export default function App() {
     setAnalyzeStep('results');
   };
 
+  const handleOpenAuth = (mode = 'login') => {
+    setAuthMode(mode);
+    setIsAuthModalOpen(true);
+  };
+
+  const handleAuthSuccess = (authenticatedUser) => {
+    setUser(authenticatedUser);
+    if (authenticatedUser?.taluk && taluks && taluks[authenticatedUser.taluk]) {
+      const talukInfo = taluks[authenticatedUser.taluk];
+      setSelectedCoords({
+        lat: talukInfo.lat,
+        lon: talukInfo.lon,
+        place_name: `${authenticatedUser.taluk} Sector (${authenticatedUser.full_name || authenticatedUser.username}'s Farm)`,
+        taluk: authenticatedUser.taluk
+      });
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('terravision_user');
+    localStorage.removeItem('terravision_token');
+    setUser(null);
+  };
+
   return (
-    <div className="min-h-screen cinema-bg text-slate-100 flex flex-col selection:bg-blue-600 selection:text-white">
+    <div className="min-h-screen farm-bg text-slate-800 flex flex-col selection:bg-emerald-600 selection:text-white">
       {/* Floating Glass Navbar */}
       <Navbar
         activeTab={activeTab}
@@ -167,6 +203,9 @@ export default function App() {
         }}
         onOpenMetrics={() => setIsMetricsOpen(true)}
         activeTaluk={selectedCoords?.taluk}
+        user={user}
+        onOpenAuth={handleOpenAuth}
+        onLogout={handleLogout}
       />
 
       {/* Main View Switcher */}
@@ -193,23 +232,25 @@ export default function App() {
         )}
 
         {activeTab === 'analyze' && (
-          <div className="w-full flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col">
+          <div className="w-full flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col text-left">
             {/* Header sub-bar for Analyze Command Center */}
             {analyzeStep === 'map' && (
               <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <div className="flex items-center gap-2 text-xs font-mono text-blue-400 mb-1">
-                    <span className="w-2 h-2 rounded-full bg-blue-400 animate-ping" />
-                    <span>GEOSPATIAL COMMAND CENTER // HIGH-PRECISION SATELLITE ENGINE</span>
+                  <div className="flex items-center gap-2 text-xs font-mono font-bold text-emerald-700 mb-1">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-ping" />
+                    <span>ದಕ್ಷಿಣ ಕನ್ನಡ ಜಿಯೋಸ್ಪೇಷಿಯಲ್ ಕೃಷಿ ನಕ್ಷೆ // SATELLITE ENGINE</span>
                   </div>
-                  <h2 className="text-2xl sm:text-3xl font-extrabold text-white font-['Space_Grotesk'] tracking-tight">
-                    Select & Draw Farm Boundary
+                  <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-['Space_Grotesk'] tracking-tight">
+                    Select Your Land or Search Village
                   </h2>
                 </div>
-                <div className="text-xs font-mono text-slate-400 flex items-center gap-2">
-                  <span className="text-blue-300">Dakshina Kannada Geofenced</span>
+                <div className="text-xs font-semibold text-slate-500 flex items-center gap-2">
+                  <span className="text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                    Dakshina Kannada Geofenced
+                  </span>
                   <span>•</span>
-                  <span>Sub-meter zoom reveals roads, houses & plots</span>
+                  <span>Zoom in to view fields, trees, and survey plots</span>
                 </div>
               </div>
             )}
@@ -227,7 +268,7 @@ export default function App() {
               />
             )}
 
-            {/* Step 2: Futuristic AI Scanning Screen */}
+            {/* Step 2: AI Scanning Screen */}
             {analyzeStep === 'scanning' && (
               <div className="my-auto py-12">
                 <AnalysisScanner
@@ -237,7 +278,7 @@ export default function App() {
               </div>
             )}
 
-            {/* Step 3: High-End AI Results Showcase */}
+            {/* Step 3: High-End Farmer-Friendly AI Results Showcase */}
             {analyzeStep === 'results' && (
               <ResultsView
                 prediction={prediction}
@@ -285,17 +326,17 @@ export default function App() {
         )}
       </main>
 
-      {/* Futuristic Minimal Footer */}
-      <footer className="w-full bg-[#020408]/95 border-t border-blue-950/60 py-8 px-4 sm:px-6 lg:px-8 font-mono text-xs text-slate-500">
+      {/* Farmer-Friendly Clean White Footer */}
+      <footer className="w-full bg-white border-t border-emerald-500/20 py-8 px-4 sm:px-6 lg:px-8 font-mono text-xs text-slate-600 shadow-sm mt-auto">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-blue-500" />
-            <span className="text-slate-300 font-semibold">TERRAVISION AI</span>
-            <span className="text-slate-600">|</span>
-            <span>NASA-grade Satellite Intelligence for Dakshina Kannada</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" />
+            <span className="text-slate-900 font-bold">TERRAVISION FARM AI</span>
+            <span className="text-slate-400">|</span>
+            <span>Satellite Precision Agriculture for Dakshina Kannada, Karnataka</span>
           </div>
           <div className="text-slate-500">
-            Sentinel-2 L2A BOA • Open-Meteo API • ExtraTrees Meta-Fusion v2.0 (88.29% Acc)
+            Sentinel-2 L2A BOA • Bhoomi RTC Integration • ExtraTrees Meta-Fusion v2.0 (88.3% Accuracy)
           </div>
         </div>
       </footer>
@@ -319,6 +360,14 @@ export default function App() {
       <MetricsModal
         isOpen={isMetricsOpen}
         onClose={() => setIsMetricsOpen(false)}
+      />
+
+      {/* User Authentication Modal (Sign In / Register) */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        initialMode={authMode}
+        onAuthSuccess={handleAuthSuccess}
       />
     </div>
   );

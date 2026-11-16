@@ -1,7 +1,9 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from .core.config import settings
 from .api.routes import router
+from .api.auth_routes import auth_router, users_router
+from .api.gis_routes import gis_router
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -18,8 +20,35 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    body = await request.body()
+    print(f"[REQUEST] {request.method} {request.url.path} | Origin: {request.headers.get('origin')} | Referer: {request.headers.get('referer')} | Body: {body.decode('utf-8', errors='ignore')}")
+    # Re-wrap receive so downstream handlers can read the body
+    async def receive():
+        return {"type": "http.request", "body": body}
+    request = Request(request.scope, receive)
+    response = await call_next(request)
+    return response
+
 # Mount API routes
+app.include_router(router, prefix="/api/v1")
 app.include_router(router, prefix="/api")
+
+# Mount GIS routes
+app.include_router(gis_router, prefix="/api/v1")
+app.include_router(gis_router, prefix="/api")
+app.include_router(gis_router, prefix="")
+
+# Mount Auth routes at multiple common paths to ensure compatibility
+app.include_router(auth_router, prefix="/api/v1/auth", tags=["Authentication"])
+app.include_router(auth_router, prefix="/api/auth", tags=["Authentication"])
+app.include_router(auth_router, prefix="/auth", tags=["Authentication"])
+
+# Mount Users routes
+app.include_router(users_router, prefix="/api/v1/users", tags=["Users"])
+app.include_router(users_router, prefix="/api/users", tags=["Users"])
+app.include_router(users_router, prefix="/users", tags=["Users"])
 
 @app.get("/")
 async def root():

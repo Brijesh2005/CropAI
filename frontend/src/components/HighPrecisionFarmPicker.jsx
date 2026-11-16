@@ -498,33 +498,71 @@ export default function HighPrecisionFarmPicker({
               type="text"
               value={searchQuery}
               onChange={handleSearchInput}
-              onFocus={() => searchQuery.length >= 2 && setShowSearchDropdown(true)}
-              placeholder="Search city, village or location…"
+              onFocus={() => setShowSearchDropdown(true)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  if (searchResults.length > 0) {
+                    handleSelectPlace(searchResults[0]);
+                  }
+                }
+              }}
+              placeholder="Search city, village, taluk or plot…"
               className="bg-transparent text-white placeholder:text-slate-400 outline-none w-full text-xs sm:text-sm font-['Space_Grotesk']"
             />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery('');
+                  setSearchResults([]);
+                  setShowSearchDropdown(false);
+                }}
+                className="text-slate-400 hover:text-white text-xs px-1"
+              >
+                ✕
+              </button>
+            )}
             {isSearching && <Loader2 className="w-4 h-4 text-blue-400 animate-spin shrink-0" />}
           </div>
 
           {/* Autocomplete Dropdown */}
-          {showSearchDropdown && searchResults.length > 0 && (
+          {showSearchDropdown && (
             <div className="absolute top-full left-0 right-0 mt-2 rounded-xl bg-black/95 border border-blue-500/40 backdrop-blur-2xl shadow-[0_15px_40px_rgba(0,0,0,0.9)] overflow-hidden max-h-72 overflow-y-auto z-[1500]">
-              {searchResults.map((item, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleSelectPlace(item)}
-                  className="w-full px-4 py-2.5 text-left text-xs font-mono hover:bg-blue-950/60 hover:text-white transition-all flex items-start gap-2.5 border-b border-blue-950/40 last:border-none cursor-pointer group"
-                >
-                  <MapPin className="w-3.5 h-3.5 text-red-400 mt-0.5 shrink-0 group-hover:scale-110 transition-transform" />
-                  <div>
-                    <div className="text-white font-semibold group-hover:text-blue-300">
-                      {item.display_name || item.name}
+              {searchResults.length > 0 ? (
+                searchResults.map((item, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleSelectPlace(item)}
+                    className="w-full px-4 py-2.5 text-left text-xs font-mono hover:bg-blue-950/60 hover:text-white transition-all flex items-start gap-2.5 border-b border-blue-950/40 last:border-none cursor-pointer group"
+                  >
+                    <MapPin className="w-3.5 h-3.5 text-red-400 mt-0.5 shrink-0 group-hover:scale-110 transition-transform" />
+                    <div>
+                      <div className="text-white font-semibold group-hover:text-blue-300">
+                        {item.display_name || item.name}
+                      </div>
+                      <div className="text-[10px] text-slate-400">
+                        {item.taluk ? `${item.taluk} Taluk` : 'Dakshina Kannada'} • {item.type || 'locality'}
+                      </div>
                     </div>
-                    <div className="text-[10px] text-slate-400">
-                      {item.taluk ? `${item.taluk} Taluk` : 'Dakshina Kannada'} • {item.type || 'locality'}
-                    </div>
+                  </button>
+                ))
+              ) : (
+                <div className="p-3">
+                  <div className="text-[10px] font-mono text-slate-400 mb-2 uppercase">Quick Select Dakshina Kannada Taluk:</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {DK_TALUKS.map((t) => (
+                      <button
+                        key={t.name}
+                        onClick={() => handleSelectPlace({ display_name: `${t.name} Taluk Center`, name: t.name, lat: t.lat, lon: t.lon, taluk: t.name, type: 'taluk_hq' })}
+                        className="px-2 py-1 rounded bg-blue-950/70 hover:bg-blue-600 border border-blue-500/30 text-white text-[11px] font-mono transition-colors"
+                      >
+                        {t.name}
+                      </button>
+                    ))}
                   </div>
-                </button>
-              ))}
+                </div>
+              )}
             </div>
           )}
 

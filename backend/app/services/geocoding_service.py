@@ -9,6 +9,15 @@ from ..schemas.prediction import SearchResultItem
 # neighborhoods, villages, hoblis, and plot sectors across all 7 taluks.
 # Zero local database engine is used; this is an in-memory spatial index.
 DK_MICRO_LOCALITIES: List[Dict[str, Any]] = [
+    # --- 7 DAKSHINA KANNADA TALUK CENTERS (TOP PRIORITY) ---
+    {"name": "Puttur", "aliases": ["puttur", "puttur town", "puttur city", "puttur karnataka", "puttur taluk"], "taluk": "Puttur", "lat": 12.7663, "lon": 75.2033, "type": "taluk_hq"},
+    {"name": "Mangaluru", "aliases": ["mangalore", "mangaluru", "mangalore city", "mangaluru town", "kudla", "mangalore karnataka", "mangaluru taluk"], "taluk": "Mangaluru", "lat": 12.9141, "lon": 74.8560, "type": "taluk_hq"},
+    {"name": "Bantwal", "aliases": ["bantwal", "buntwal", "bc road", "b.c. road", "bantwal town", "bantwala", "bantwal taluk"], "taluk": "Bantwal", "lat": 12.8903, "lon": 75.0347, "type": "taluk_hq"},
+    {"name": "Belthangady", "aliases": ["belthangady", "beltangadi", "belthangadi", "belthangady town", "belthangady taluk"], "taluk": "Belthangady", "lat": 12.9983, "lon": 75.2588, "type": "taluk_hq"},
+    {"name": "Sullia", "aliases": ["sullia", "sullya", "sulya", "sullia town", "sullia taluk"], "taluk": "Sullia", "lat": 12.5606, "lon": 75.3892, "type": "taluk_hq"},
+    {"name": "Moodbidri", "aliases": ["moodbidri", "mudbidri", "moodabidri", "bedra", "moodbidri town", "moodbidri taluk"], "taluk": "Moodbidri", "lat": 13.0694, "lon": 74.9961, "type": "taluk_hq"},
+    {"name": "Kadaba", "aliases": ["kadaba", "kadaba town", "kadaba taluk"], "taluk": "Kadaba", "lat": 12.7381, "lon": 75.4522, "type": "taluk_hq"},
+
     # --- PUTTUR TALUK ---
     {"name": "Nehru Nagara", "aliases": ["nehru nagar", "neharu nagar", "neharu nagara", "nehru nagara puttur", "vivekananda college"], "taluk": "Puttur", "lat": 12.7805, "lon": 75.1869, "type": "neighborhood"},
     {"name": "Mura", "aliases": ["mura", "mura puttur", "mura junction", "mura road", "mura layout"], "taluk": "Puttur", "lat": 12.7750, "lon": 75.1950, "type": "neighborhood"},
@@ -164,6 +173,12 @@ def search_gazetteer(query: str) -> List[SearchResultItem]:
                 matched = True; score = 70; break
 
         if matched:
+            # Bonus for Taluk HQ and exact name matches
+            if loc.get("type") == "taluk_hq":
+                score += 25
+            if name_lower == q_norm:
+                score += 20
+
             display_name = f"{loc['name']}, {loc['taluk']} Taluk, Dakshina Kannada, Karnataka"
             matches.append({
                 "item": SearchResultItem(
@@ -276,11 +291,14 @@ def resolve_universal_dk_places(query: str) -> List[SearchResultItem]:
             add_result(m)
 
     # 3. Third priority: Google Suggest live place query resolution
-    # If fewer than 5 results found, expand with Google Suggestions
+    # If fewer than 5 results found, expand with clean locality recommendations
+    junk_words = {"distance", "bus", "train", "timing", "hotel", "resort", "news", "weather", "route", "map", "pin code", "pincode", "jobs", "college", "school", "hospital", "atm", "bank"}
     if len(combined_results) < 5:
         suggestions = query_google_suggestions(clean_q)
         for s in suggestions[:8]:
             s_clean = s.lower()
+            if any(junk in s_clean for junk in junk_words):
+                continue
             # If suggestion references any of the 7 taluks or places in DK
             for taluk_name, taluk_center in settings.TALUK_CENTERS.items():
                 if taluk_name.lower() in s_clean or "mangalore" in s_clean or "dakshina kannada" in s_clean:
@@ -296,7 +314,7 @@ def resolve_universal_dk_places(query: str) -> List[SearchResultItem]:
                             lat=base["lat"],
                             lon=base["lon"],
                             taluk=res_taluk,
-                            type="search_recommendation",
+                            type="locality",
                             is_inside_dk=True
                         )
                     )

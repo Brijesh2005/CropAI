@@ -7,9 +7,12 @@ class LocationInput(BaseModel):
     place_name: Optional[str] = Field(None, description="Descriptive place name or village")
     taluk: Optional[str] = Field(None, description="Taluk name within Dakshina Kannada")
     season: Optional[str] = Field("Kharif", description="Crop season: Kharif, Rabi, Zaid")
+    year: Optional[int] = Field(None, description="Year (ignored for current/future forecast)")
     area_acres: Optional[float] = Field(2.5, description="Farm land size in acres")
     soil_type: Optional[str] = Field(None, description="Optional soil type override")
     irrigation: Optional[str] = Field("Rain-fed", description="Irrigation method: Rain-fed, Drip, Sprinkler, Canal")
+
+    model_config = {"extra": "allow"}
 
 class GeofenceCheck(BaseModel):
     is_inside_dk: bool
@@ -57,6 +60,7 @@ class CropRecommendation(BaseModel):
     risk_level: str
 
 class ModelBranchBreakdown(BaseModel):
+    model_config = {"protected_namespaces": ()}
     phase1_tabular_top: List[Dict[str, Any]]
     phase2_satellite_top: List[Dict[str, Any]]
     phase3_fusion_top: List[Dict[str, Any]]
@@ -72,16 +76,30 @@ class AgronomicAdvice(BaseModel):
     economic_outlook: str
 
 class PredictionResponse(BaseModel):
-    success: bool
-    location_summary: Dict[str, Any]
-    environmental: EnvironmentalData
-    satellite: SatelliteSpectralData
+    model_config = {"protected_namespaces": (), "extra": "allow"}
+    success: bool = True
+    prediction_id: Optional[int] = None
+    location: Optional[Dict[str, Any]] = None
+    coordinates: Optional[Dict[str, Any]] = None
     recommended_crop: str
-    yield_forecast: Dict[str, Any]
-    top_recommendations: List[CropRecommendation]
-    model_breakdown: ModelBranchBreakdown
-    agronomic_advice: AgronomicAdvice
-    timestamp: str
+    expected_yield: Optional[float] = None
+    confidence: Optional[float] = None
+    crop_probs: Optional[Dict[str, float]] = None
+    model_version: Optional[str] = "2.0-Fusion"
+    inference_time_ms: Optional[float] = 125.0
+    fallback: Optional[bool] = False
+    explanation_summary: Optional[Dict[str, Any]] = None
+    agricultural_info: Optional[Dict[str, Any]] = None
+
+    # Original fields for TerraVision UI compatibility
+    location_summary: Optional[Dict[str, Any]] = None
+    environmental: Optional[EnvironmentalData] = None
+    satellite: Optional[SatelliteSpectralData] = None
+    yield_forecast: Optional[Dict[str, Any]] = None
+    top_recommendations: Optional[List[CropRecommendation]] = None
+    model_breakdown: Optional[ModelBranchBreakdown] = None
+    agronomic_advice: Optional[AgronomicAdvice] = None
+    timestamp: Optional[str] = None
 
 class SearchResultItem(BaseModel):
     display_name: str
@@ -97,6 +115,7 @@ class SearchResponse(BaseModel):
     results: List[SearchResultItem]
 
 class ModelMetricsResponse(BaseModel):
+    model_config = {"protected_namespaces": (), "extra": "allow"}
     best_model_name: str
     test_accuracy: float
     train_accuracy: float
