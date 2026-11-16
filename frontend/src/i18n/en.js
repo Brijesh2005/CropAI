@@ -77,7 +77,7 @@ export default {
   'res.tab_crop': 'Best Crop',
   'res.tab_guide': 'How to grow',
   'res.tab_region': 'Region & Soil',
-  'res.tab_legal': 'Land papers',
+  'res.tab_legal': 'If you are buying land',
   'res.tab_buying': 'Buying & Contacts',
   'res.badge_results': 'Farm Analysis Results',
   'res.print': 'Print report',

@@ -77,7 +77,7 @@ export default {
   'res.tab_crop': 'ಉತ್ತಮ ಬೆಳೆ',
   'res.tab_guide': 'ಬೆಳೆಯುವ ವಿಧಾನ',
   'res.tab_region': 'ಪ್ರದೇಶ & ಮಣ್ಣು',
-  'res.tab_legal': 'ಜಮೀನಿನ ಪತ್ರಗಳು',
+  'res.tab_legal': 'ಜಮೀನು ಖರೀದಿಸುವ ಮುನ್ನ',
   'res.tab_buying': 'ಖರೀದಿ & ಸಂಪರ್ಕ',
   'res.badge_results': 'ಜಮೀನಿನ ಫಲಿತಾಂಶ',
   'res.print': 'ವರದಿ ಮುದ್ರಿಸಿ',

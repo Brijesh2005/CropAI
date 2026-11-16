@@ -1,46 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import L from 'leaflet';
 import * as turf from '@turf/turf';
-import { Info, X, Compass, MapPin } from 'lucide-react';
+import { Info, X, MapPin } from 'lucide-react';
 import MapSearchBar from './MapSearchBar';
 import MapToolbar from './MapToolbar';
 import FarmAreaConfirmBar from './FarmAreaConfirmBar';
+import MapTalukChips from './MapTalukChips';
 import { toast } from './Toast';
 import { useLang } from '../i18n/LanguageContext';
-
-const TILE_LAYERS = {
-  hybrid: {
-    name: 'Satellite',
-    url: 'https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
-    subdomains: ['0', '1', '2', '3'],
-    maxZoom: 21,
-    attribution: 'Imagery & Roads &copy; Google Earth'
-  },
-  street: {
-    name: 'Street',
-    url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-    subdomains: [],
-    maxZoom: 19,
-    attribution: '&copy; OpenStreetMap contributors'
-  },
-  terrain: {
-    name: 'Terrain',
-    url: 'https://mt{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',
-    subdomains: ['0', '1', '2', '3'],
-    maxZoom: 20,
-    attribution: 'Terrain &copy; Google'
-  }
-};
-
-const DK_TALUKS = [
-  { name: 'Puttur', knName: 'ಪುತ್ತೂರು', lat: 12.7667, lon: 75.2000 },
-  { name: 'Mangaluru', knName: 'ಮಂಗಳೂರು', lat: 12.9141, lon: 74.8560 },
-  { name: 'Belthangady', knName: 'ಬೆಳ್ತಂಗಡಿ', lat: 13.0000, lon: 75.2600 },
-  { name: 'Bantwal', knName: 'ಬಂಟ್ವಾಳ', lat: 12.8900, lon: 75.0300 },
-  { name: 'Sullia', knName: 'ಸುಳ್ಯ', lat: 12.5600, lon: 75.3900 },
-  { name: 'Moodbidri', knName: 'ಮೂಡುಬಿದಿರೆ', lat: 13.0700, lon: 74.9900 },
-  { name: 'Kadaba', knName: 'ಕಡಬ', lat: 12.7400, lon: 75.4300 }
-];
+import { TILE_LAYERS, DK_TALUKS } from './mapConstants';
 
 export default function HighPrecisionFarmPicker({
   selectedCoords,
@@ -378,34 +346,20 @@ export default function HighPrecisionFarmPicker({
       </div>
 
       {/* 3. DAKSHINA KANNADA QUICK TALUK EXPLORATION CHIPS */}
-      <div className={`hidden lg:flex absolute left-4 z-[900] items-center gap-1.5 p-1 rounded-xl bg-white/95 border border-slate-200 shadow-sm backdrop-blur-md transition-all ${
-        showHowToBanner ? 'top-32' : 'top-20'
-      }`}>
-        <span className="text-xs font-bold text-slate-500 px-2 flex items-center gap-1">
-          <Compass className="w-3.5 h-3.5 text-emerald-700" />
-          <span>{t('map.taluk_select', 'Taluk:')}</span>
-        </span>
-        {DK_TALUKS.map((tItem) => (
-          <button
-            key={tItem.name}
-            onClick={() => {
-              onLocationPicked(tItem.lat, tItem.lon, `${tItem.name} Agro Zone`, tItem.name);
-              if (mapRef.current) {
-                mapRef.current.flyTo([tItem.lat, tItem.lon], 16, { duration: 1.2 });
-              }
-              createOrUpdateTargetPin(tItem.lat, tItem.lon);
-              createInitialFarmPolygon(tItem.lat, tItem.lon);
-            }}
-            className={`min-h-[36px] px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-              selectedCoords?.taluk === tItem.name
-                ? 'bg-emerald-100 text-emerald-900 border border-emerald-300 font-bold'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-            }`}
-          >
-            {tItem.knName} ({tItem.name})
-          </button>
-        ))}
-      </div>
+      <MapTalukChips
+        taluks={DK_TALUKS}
+        selectedTaluk={selectedCoords?.taluk}
+        showHowToBanner={showHowToBanner}
+        t={t}
+        onSelectTaluk={(tItem) => {
+          onLocationPicked(tItem.lat, tItem.lon, `${tItem.name} Agro Zone`, tItem.name);
+          if (mapRef.current) {
+            mapRef.current.flyTo([tItem.lat, tItem.lon], 16, { duration: 1.2 });
+          }
+          createOrUpdateTargetPin(tItem.lat, tItem.lon);
+          createInitialFarmPolygon(tItem.lat, tItem.lon);
+        }}
+      />
 
       {/* 4. CONFIRM BARS: DESKTOP FLOATING CARD & MOBILE STICKY BAR */}
       <FarmAreaConfirmBar
