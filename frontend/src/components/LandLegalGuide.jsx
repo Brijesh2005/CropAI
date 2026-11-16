@@ -1,6 +1,6 @@
 import React from 'react';
 import { LEGAL_INSTRUCTIONS } from '../data/agriculturalData';
-import { ShieldCheck, Scale, FileText, ExternalLink, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Scale, ExternalLink, AlertTriangle, CheckCircle2 } from 'lucide-react';
 
 export default function LandLegalGuide({ language = 'kn' }) {
   const sections = Object.values(LEGAL_INSTRUCTIONS);

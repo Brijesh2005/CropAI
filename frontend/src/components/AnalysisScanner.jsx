@@ -1,167 +1,144 @@
 import React, { useState, useEffect } from 'react';
-import { Satellite, Radio, Cpu, Layers, CheckCircle2, AlertTriangle, Scan, Shield } from 'lucide-react';
+import { CheckCircle2, Loader2, MapPin } from 'lucide-react';
 
-const SCAN_STAGES = [
-  { id: 'loc', label: 'LOCATION IDENTIFIED', subtext: 'Target geofence confirmed in Dakshina Kannada' },
-  { id: 'num', label: 'NUMERICAL DATA', subtext: 'Atmospheric telemetry & soil matrix ingested' },
-  { id: 'sat', label: 'SATELLITE IMAGERY', subtext: 'Sentinel-2 Level-2A BOA reflectances fetched' },
-  { id: 'img', label: 'IMAGE ANALYSIS', subtext: 'Spectral NDVI, NDRE & EVI indices computed' },
-  { id: 'fus', label: 'MODEL FUSION', subtext: 'Meta-Fusion ExtraTrees 88.29% weighting' },
-  { id: 'crp', label: 'CROP FORECAST', subtext: 'Synthesizing yield tonnage & optimal harvest window' }
+const FRIENDLY_STEPS = [
+  { id: 'loc', title: 'Finding your location', knTitle: 'ನಿಮ್ಮ ಸ್ಥಳವನ್ನು ಗುರುತಿಸಲಾಗುತ್ತಿದೆ' },
+  { id: 'sat', title: 'Reading satellite images', knTitle: 'ಉಪಗ್ರಹ ಚಿತ್ರಗಳನ್ನು ಓದಲಾಗುತ್ತಿದೆ' },
+  { id: 'env', title: 'Checking soil and weather', knTitle: 'ಮಣ್ಣು ಮತ್ತು ಹವಾಮಾನ ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ' },
+  { id: 'crp', title: 'Choosing the best crop', knTitle: 'ಅತ್ಯುತ್ತಮ ಬೆಳೆಯನ್ನು ಆರಿಸಲಾಗುತ್ತಿದೆ' },
+  { id: 'yld', title: 'Calculating your yield', knTitle: 'ನಿರೀಕ್ಷಿತ ಇಳುವರಿಯನ್ನು ಲೆಕ್ಕಹಾಕಲಾಗುತ್ತಿದೆ' }
 ];
 
 export default function AnalysisScanner({ locationInfo, onScanComplete }) {
-  const [currentStageIdx, setCurrentStageIdx] = useState(0);
-  const [progress, setProgress] = useState(12);
+  const [currentStepIdx, setCurrentStepIdx] = useState(0);
+  const [progress, setProgress] = useState(15);
 
   useEffect(() => {
-    // Progress through stages smoothly
-    const interval = setInterval(() => {
-      setCurrentStageIdx((prev) => {
-        if (prev < SCAN_STAGES.length - 1) {
+    // Step progression timer
+    const stepInterval = setInterval(() => {
+      setCurrentStepIdx((prev) => {
+        if (prev < FRIENDLY_STEPS.length - 1) {
           return prev + 1;
         }
         return prev;
       });
-    }, 600);
+    }, 550);
 
-    const progressTimer = setInterval(() => {
+    // Continuous progress bar
+    const progressInterval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
-          clearInterval(progressTimer);
+          clearInterval(progressInterval);
           setTimeout(() => {
             if (onScanComplete) onScanComplete();
-          }, 400);
+          }, 350);
           return 100;
         }
-        return prev + 6;
+        return prev + 5;
       });
-    }, 180);
+    }, 140);
 
     return () => {
-      clearInterval(interval);
-      clearInterval(progressTimer);
+      clearInterval(stepInterval);
+      clearInterval(progressInterval);
     };
   }, [onScanComplete]);
 
   return (
-    <div className="w-full max-w-4xl mx-auto py-8 px-4 flex flex-col items-center">
-      {/* Central Holographic Scanner Visual */}
-      <div className="relative w-72 h-72 sm:w-80 sm:h-80 mb-8 flex items-center justify-center">
-        
-        {/* Orbital Scanning Rings */}
-        <div className="absolute inset-0 rounded-full border border-blue-500/20 animate-[spin_12s_linear_infinite]" />
-        <div className="absolute inset-4 rounded-full border border-dashed border-blue-400/30 animate-[spin_20s_linear_infinite_reverse]" />
-        <div className="absolute inset-10 rounded-full border border-blue-600/15" />
-        
-        {/* Rotating Radar Sweep Cone */}
-        <div className="absolute inset-0 rounded-full overflow-hidden pointer-events-none opacity-40">
-          <div className="w-full h-full bg-[conic-gradient(from_0deg,transparent_0deg,transparent_270deg,rgba(59,130,246,0.5)_360deg)] animate-[spin_3s_linear_infinite]" />
-        </div>
-
-        {/* Central Dark Glass Scanner Core */}
-        <div className="relative z-10 w-48 h-48 rounded-2xl bg-black/85 border border-blue-500/40 p-5 backdrop-blur-2xl shadow-[0_0_50px_rgba(37,99,235,0.35)] flex flex-col items-center justify-between overflow-hidden">
-          
-          {/* Laser Scanning Beam */}
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-blue-400 to-transparent animate-scan-sweep shadow-[0_0_15px_#3b82f6]" />
-
-          {/* Top header */}
-          <div className="w-full flex items-center justify-between text-[10px] font-mono text-slate-400">
-            <span className="flex items-center gap-1.5 text-blue-400">
-              <Scan className="w-3 h-3 animate-pulse" />
-              SCANNING
+    <div className="w-full max-w-xl mx-auto py-8 px-4 text-left">
+      <div className="card p-6 sm:p-8 border-emerald-200 shadow-md bg-white">
+        {/* Header */}
+        <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+          <div>
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-800 mb-1">
+              <span className="w-2 h-2 rounded-full bg-emerald-600" />
+              <span>Analyzing your farm</span>
+            </div>
+            <h3 className="text-xl sm:text-2xl font-bold text-slate-900 font-['Space_Grotesk']">
+              Checking farm conditions
+            </h3>
+          </div>
+          <div className="text-right">
+            <span className="text-2xl font-black text-emerald-700 font-['Space_Grotesk']">
+              {progress}%
             </span>
-            <span className="text-white font-bold">{progress}%</span>
-          </div>
-
-          {/* Center Graphic */}
-          <div className="relative flex items-center justify-center my-auto">
-            <div className="w-16 h-16 rounded-xl bg-blue-950/60 border border-blue-500/50 flex items-center justify-center shadow-[0_0_25px_rgba(59,130,246,0.4)]">
-              <Satellite className="w-8 h-8 text-blue-400 animate-pulse" />
-            </div>
-            
-            {/* Subtle red target scan point */}
-            <div className="absolute -top-1 -right-1 flex items-center justify-center">
-              <div className="w-5 h-5 rounded-full border border-red-500/80 animate-ping absolute" />
-              <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_#ef4444]" />
-            </div>
-          </div>
-
-          {/* Bottom Telemetry Tag */}
-          <div className="text-center font-mono text-[10px] text-slate-300">
-            {locationInfo?.place_name || 'DAKSHINA KANNADA SECTOR'}
           </div>
         </div>
 
-      </div>
+        {/* Selected Location Pill */}
+        {locationInfo?.place_name && (
+          <div className="mt-4 flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700">
+            <MapPin className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span className="truncate font-medium">{locationInfo.place_name}</span>
+            {locationInfo.taluk && (
+              <span className="ml-auto text-emerald-800 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 shrink-0">
+                {locationInfo.taluk}
+              </span>
+            )}
+          </div>
+        )}
 
-      {/* Progress Bar Container */}
-      <div className="w-full max-w-xl mb-8">
-        <div className="flex items-center justify-between text-xs font-mono text-slate-400 mb-2">
-          <span className="flex items-center gap-1.5 text-blue-400">
-            <Radio className="w-3.5 h-3.5 animate-pulse" />
-            AI MULTI-MODAL SYNTHESIS IN PROGRESS
-          </span>
-          <span className="text-white font-bold">{progress}% COMPLETE</span>
-        </div>
-
-        <div className="w-full h-2 rounded-full bg-blue-950/40 border border-blue-500/30 overflow-hidden p-[1px]">
-          <div 
-            className="h-full rounded-full bg-gradient-to-r from-blue-600 via-blue-400 to-blue-300 shadow-[0_0_15px_#3b82f6] transition-all duration-300"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-      </div>
-
-      {/* 6 Stage Sequential Status Cards */}
-      <div className="w-full max-w-2xl grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {SCAN_STAGES.map((stage, idx) => {
-          const isCompleted = idx < currentStageIdx;
-          const isCurrent = idx === currentStageIdx;
-          const isPending = idx > currentStageIdx;
-
-          return (
+        {/* Horizontal Progress Bar */}
+        <div className="mt-6 mb-6">
+          <div className="w-full h-3 rounded-full bg-slate-100 overflow-hidden p-0.5 border border-slate-200">
             <div
-              key={stage.id}
-              className={`p-3.5 rounded-xl transition-all duration-300 backdrop-blur-xl border ${
-                isCurrent
-                  ? 'bg-blue-950/70 border-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.35)] scale-[1.02]'
-                  : isCompleted
-                  ? 'bg-black/80 border-blue-500/25 text-slate-300'
-                  : 'bg-black/40 border-slate-900/60 opacity-40'
-              }`}
-            >
-              <div className="flex items-center gap-3">
+              className="h-full rounded-full bg-emerald-600 transition-all duration-200 ease-out"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Vertical Checklist of 5 Friendly Steps */}
+        <div className="space-y-3">
+          {FRIENDLY_STEPS.map((step, idx) => {
+            const isCompleted = idx < currentStepIdx || progress === 100;
+            const isCurrent = idx === currentStepIdx && progress < 100;
+
+            return (
+              <div
+                key={step.id}
+                className={`p-3.5 rounded-xl border transition-all flex items-center gap-3.5 ${
+                  isCurrent
+                    ? 'bg-emerald-50/80 border-emerald-300 shadow-xs'
+                    : isCompleted
+                    ? 'bg-white border-slate-100 text-slate-700'
+                    : 'bg-slate-50/50 border-slate-100 text-slate-400 opacity-60'
+                }`}
+              >
                 <div className="shrink-0">
                   {isCompleted ? (
-                    <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center shadow-[0_0_10px_#3b82f6]">
-                      <CheckCircle2 className="w-4 h-4 text-white" />
+                    <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                     </div>
                   ) : isCurrent ? (
-                    <div className="w-6 h-6 rounded-full bg-blue-500/30 border border-blue-400 flex items-center justify-center animate-pulse">
-                      <div className="w-2.5 h-2.5 rounded-full bg-blue-400 shadow-[0_0_8px_#60a5fa]" />
+                    <div className="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center">
+                      <Loader2 className="w-4 h-4 animate-spin text-white" />
                     </div>
                   ) : (
-                    <div className="w-6 h-6 rounded-full border border-slate-800 flex items-center justify-center text-[10px] font-mono text-slate-600">
-                      0{idx + 1}
+                    <div className="w-7 h-7 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center text-xs font-bold">
+                      {idx + 1}
                     </div>
                   )}
                 </div>
 
-                <div>
-                  <div className={`text-xs font-mono font-bold tracking-wider ${
-                    isCurrent ? 'text-white glow-text-blue' : isCompleted ? 'text-blue-300' : 'text-slate-500'
-                  }`}>
-                    {stage.label}
+                <div className="flex-1">
+                  <div className={`text-sm font-bold ${isCurrent ? 'text-emerald-900' : isCompleted ? 'text-slate-800' : 'text-slate-500'}`}>
+                    {step.title}
                   </div>
-                  <div className="text-[11px] text-slate-400 font-sans mt-0.5">
-                    {stage.subtext}
+                  <div className="text-xs text-slate-500 mt-0.5">
+                    {step.knTitle}
                   </div>
                 </div>
+
+                {isCurrent && (
+                  <span className="text-xs font-bold text-emerald-800 bg-white px-2 py-0.5 rounded-full border border-emerald-200 shadow-2xs">
+                    In progress
+                  </span>
+                )}
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
   );

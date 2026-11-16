@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, User, Lock, Mail, MapPin, Briefcase, CheckCircle2, AlertCircle, Loader2, ArrowRight, ShieldCheck } from 'lucide-react';
+import { X, User, Lock, Mail, MapPin, CheckCircle2, AlertCircle, Loader2, ArrowRight, Sprout, Eye, EyeOff } from 'lucide-react';
 
 const TALUKS = [
   "Mangaluru",
@@ -11,29 +11,45 @@ const TALUKS = [
   "Kadaba"
 ];
 
-const ROLES = [
-  { id: 'farmer', label: 'Farmer / Landholder' },
-  { id: 'agronomist', label: 'Agricultural Officer / Agronomist' },
-  { id: 'researcher', label: 'Data Analyst / Researcher' }
-];
-
 export default function AuthModal({ isOpen, onClose, initialMode = 'login', onAuthSuccess }) {
   const [mode, setMode] = useState(initialMode); // 'login' | 'register'
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Form states
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [taluk, setTaluk] = useState('Puttur');
-  const [role, setRole] = useState('farmer');
+
+  // Inline field validation errors
+  const [fieldErrors, setFieldErrors] = useState({});
 
   if (!isOpen) return null;
 
+  const validate = () => {
+    const errors = {};
+    if (!email.trim()) {
+      errors.email = 'Please enter your email or username.';
+    }
+    if (!password) {
+      errors.password = 'Please enter your password.';
+    } else if (password.length < 6) {
+      errors.password = 'Password must be at least 6 characters.';
+    }
+    if (mode === 'register' && !fullName.trim()) {
+      errors.fullName = 'Please enter your full name.';
+    }
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validate()) return;
+
     setLoading(true);
     setError(null);
     setSuccessMsg(null);
@@ -41,8 +57,8 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login', onAu
     try {
       const endpoint = mode === 'register' ? '/api/v1/auth/register' : '/api/v1/auth/login';
       const payload = mode === 'register'
-        ? { email, password, full_name: fullName, taluk, role }
-        : { email, password };
+        ? { email: email.trim(), password, full_name: fullName.trim(), taluk, role: 'farmer' }
+        : { email: email.trim(), password };
 
       const res = await fetch(endpoint, {
         method: 'POST',
@@ -68,7 +84,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login', onAu
       setTimeout(() => {
         onAuthSuccess(data.user);
         onClose();
-      }, 700);
+      }, 600);
     } catch (err) {
       setError(err.message || 'An unexpected error occurred. Please try again.');
     } finally {
@@ -77,18 +93,16 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login', onAu
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in text-left">
       <div 
-        className="relative w-full max-w-md glass-card bg-[#030712]/95 border border-blue-500/40 rounded-2xl shadow-[0_0_50px_rgba(37,99,235,0.25)] p-6 sm:p-8 overflow-hidden text-left"
+        className="relative w-full max-w-md bg-white border border-emerald-200 rounded-2xl shadow-xl p-6 sm:p-8 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Ambient Top Glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-1.5 bg-gradient-to-r from-transparent via-blue-500 to-transparent blur-sm" />
-
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+          aria-label="Close dialog"
+          className="absolute top-5 right-5 p-2 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
         >
           <X className="w-5 h-5" />
         </button>
@@ -96,43 +110,43 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login', onAu
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 rounded-lg bg-blue-950/60 border border-blue-500/40 flex items-center justify-center">
-              <ShieldCheck className="w-4 h-4 text-blue-400" />
+            <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+              <Sprout className="w-4 h-4" />
             </div>
-            <span className="text-xs font-mono text-blue-400 tracking-wider uppercase">
-              TerraVision Access
+            <span className="text-xs font-semibold text-emerald-800">
+              TerraVision Farm
             </span>
           </div>
-          <h2 className="text-2xl font-bold font-['Space_Grotesk'] text-white">
-            {mode === 'register' ? 'Create Account' : 'Welcome Back'}
+          <h2 className="text-2xl font-bold font-['Space_Grotesk'] text-slate-900">
+            {mode === 'register' ? 'Create farmer account' : 'Welcome back'}
           </h2>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-600 mt-1">
             {mode === 'register'
-              ? 'Join the Dakshina Kannada precision agriculture network'
-              : 'Sign in to access your farm intelligence & satellite history'}
+              ? 'Join Dakshina Kannada precision farming'
+              : 'Sign in to access your farm analyses and history'}
           </p>
         </div>
 
         {/* Mode Switcher Tabs */}
-        <div className="grid grid-cols-2 p-1 mb-6 rounded-xl bg-blue-950/40 border border-blue-500/20 text-xs font-medium">
+        <div className="grid grid-cols-2 p-1 mb-6 rounded-xl bg-slate-100 border border-slate-200 text-xs font-medium">
           <button
             type="button"
-            onClick={() => { setMode('login'); setError(null); }}
-            className={`py-2 rounded-lg transition-all cursor-pointer ${
+            onClick={() => { setMode('login'); setError(null); setFieldErrors({}); }}
+            className={`py-2 rounded-lg transition-all cursor-pointer font-semibold ${
               mode === 'login'
-                ? 'bg-blue-600 text-white shadow-md font-semibold'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-white text-emerald-800 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             Sign In
           </button>
           <button
             type="button"
-            onClick={() => { setMode('register'); setError(null); }}
-            className={`py-2 rounded-lg transition-all cursor-pointer ${
+            onClick={() => { setMode('register'); setError(null); setFieldErrors({}); }}
+            className={`py-2 rounded-lg transition-all cursor-pointer font-semibold ${
               mode === 'register'
-                ? 'bg-blue-600 text-white shadow-md font-semibold'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-white text-emerald-800 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             Create Account
@@ -141,109 +155,127 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login', onAu
 
         {/* Alert Messages */}
         {error && (
-          <div className="mb-4 p-3 rounded-lg bg-red-950/50 border border-red-500/40 flex items-start gap-2.5 text-xs text-red-200">
-            <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+          <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2.5 text-xs text-red-700">
+            <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
             <span>{error}</span>
           </div>
         )}
         {successMsg && (
-          <div className="mb-4 p-3 rounded-lg bg-emerald-950/50 border border-emerald-500/40 flex items-center gap-2.5 text-xs text-emerald-200">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          <div className="mb-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center gap-2.5 text-xs text-emerald-800">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>{successMsg}</span>
           </div>
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4 text-xs font-mono">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {mode === 'register' && (
             <div>
-              <label className="block text-slate-300 mb-1.5 font-sans text-xs font-medium">Full Name</label>
+              <label htmlFor="auth-fullname" className="block text-slate-700 mb-1.5 text-xs font-semibold">
+                Full Name
+              </label>
               <div className="relative">
-                <User className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+                <User className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
                 <input
+                  id="auth-fullname"
                   type="text"
-                  required
+                  autoComplete="name"
                   value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
+                  onChange={(e) => {
+                    setFullName(e.target.value);
+                    if (fieldErrors.fullName) setFieldErrors(prev => ({ ...prev, fullName: null }));
+                  }}
                   placeholder="e.g. Ramesh Gowda"
-                  className="w-full pl-9 pr-3 py-2 rounded-lg bg-black/60 border border-slate-700 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 text-white outline-none"
+                  className={`input pl-10 pr-3 ${fieldErrors.fullName ? 'border-red-400 focus:border-red-500' : ''}`}
                 />
               </div>
+              {fieldErrors.fullName && (
+                <p className="text-xs text-red-600 mt-1">{fieldErrors.fullName}</p>
+              )}
             </div>
           )}
 
           <div>
-            <label className="block text-slate-300 mb-1.5 font-sans text-xs font-medium">Email / Username</label>
+            <label htmlFor="auth-username" className="block text-slate-700 mb-1.5 text-xs font-semibold">
+              Email or Username
+            </label>
             <div className="relative">
-              <Mail className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+              <Mail className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
               <input
+                id="auth-username"
                 type="text"
-                required
+                autoComplete="username"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (fieldErrors.email) setFieldErrors(prev => ({ ...prev, email: null }));
+                }}
                 placeholder="farmer@dakshina.in"
-                className="w-full pl-9 pr-3 py-2 rounded-lg bg-black/60 border border-slate-700 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 text-white outline-none"
+                className={`input pl-10 pr-3 ${fieldErrors.email ? 'border-red-400 focus:border-red-500' : ''}`}
               />
             </div>
+            {fieldErrors.email && (
+              <p className="text-xs text-red-600 mt-1">{fieldErrors.email}</p>
+            )}
           </div>
 
           <div>
-            <label className="block text-slate-300 mb-1.5 font-sans text-xs font-medium">Password</label>
+            <label htmlFor="auth-password" className="block text-slate-700 mb-1.5 text-xs font-semibold">
+              Password
+            </label>
             <div className="relative">
-              <Lock className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+              <Lock className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
               <input
-                type="password"
-                required
+                id="auth-password"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (fieldErrors.password) setFieldErrors(prev => ({ ...prev, password: null }));
+                }}
                 placeholder="••••••••"
-                className="w-full pl-9 pr-3 py-2 rounded-lg bg-black/60 border border-slate-700 focus:border-blue-400 focus:ring-1 focus:ring-blue-400 text-white outline-none"
+                className={`input pl-10 pr-11 ${fieldErrors.password ? 'border-red-400 focus:border-red-500' : ''}`}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                className="absolute right-3 top-3 p-1 text-slate-400 hover:text-slate-600 cursor-pointer"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
+            {fieldErrors.password && (
+              <p className="text-xs text-red-600 mt-1">{fieldErrors.password}</p>
+            )}
           </div>
 
           {mode === 'register' && (
-            <>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-300 mb-1.5 font-sans text-xs font-medium">Taluk Sector</label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
-                    <select
-                      value={taluk}
-                      onChange={(e) => setTaluk(e.target.value)}
-                      className="w-full pl-9 pr-2 py-2 rounded-lg bg-black/60 border border-slate-700 focus:border-blue-400 text-white outline-none"
-                    >
-                      {TALUKS.map((t) => (
-                        <option key={t} value={t} className="bg-slate-900 text-white">{t}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-slate-300 mb-1.5 font-sans text-xs font-medium">Role</label>
-                  <div className="relative">
-                    <Briefcase className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
-                    <select
-                      value={role}
-                      onChange={(e) => setRole(e.target.value)}
-                      className="w-full pl-9 pr-2 py-2 rounded-lg bg-black/60 border border-slate-700 focus:border-blue-400 text-white outline-none"
-                    >
-                      {ROLES.map((r) => (
-                        <option key={r.id} value={r.id} className="bg-slate-900 text-white">{r.label.split('/')[0]}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
+            <div>
+              <label htmlFor="auth-taluk" className="block text-slate-700 mb-1.5 text-xs font-semibold">
+                Taluk Sector
+              </label>
+              <div className="relative">
+                <MapPin className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
+                <select
+                  id="auth-taluk"
+                  value={taluk}
+                  onChange={(e) => setTaluk(e.target.value)}
+                  className="input pl-10 pr-8"
+                >
+                  {TALUKS.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
               </div>
-            </>
+            </div>
           )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-sans font-semibold tracking-wide flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(37,99,235,0.4)] transition-all cursor-pointer disabled:opacity-50"
+            className="btn-primary w-full mt-2"
           >
             {loading ? (
               <>
@@ -252,7 +284,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login', onAu
               </>
             ) : (
               <>
-                <span>{mode === 'register' ? 'Register Account' : 'Sign In'}</span>
+                <span>{mode === 'register' ? 'Create farmer account' : 'Sign in'}</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
@@ -260,11 +292,10 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'login', onAu
         </form>
 
         {/* Footer Note */}
-        <div className="mt-5 text-center text-[11px] text-slate-500">
-          <span>Protected by TerraVision Geofence & Encryption</span>
+        <div className="mt-5 text-center text-xs text-slate-500">
+          <span>Protected by Dakshina Kannada Geofence &amp; Security</span>
         </div>
       </div>
     </div>
   );
 }
-

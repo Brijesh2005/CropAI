@@ -1,64 +1,31 @@
 import React, { useState } from 'react';
 import { CROP_PROFILES } from '../data/agriculturalData';
-import { BookOpen, Sprout, Droplets, FlaskConical, ShieldAlert, Sparkles, CheckCircle2, ChevronRight, Globe } from 'lucide-react';
+import { BookOpen, CheckCircle2 } from 'lucide-react';
+import { useLang } from '../i18n/LanguageContext';
 
-export default function CultivationGuide({ initialCrop = 'Arecanut', language = 'kn', onLanguageChange }) {
+export default function CultivationGuide({ initialCrop = 'Arecanut' }) {
   const [selectedCropKey, setSelectedCropKey] = useState(initialCrop);
-  const [lang, setLang] = useState(language);
-
-  const handleLang = (newLang) => {
-    setLang(newLang);
-    if (onLanguageChange) onLanguageChange(newLang);
-  };
+  const { lang } = useLang();
 
   const crop = CROP_PROFILES[selectedCropKey] || CROP_PROFILES['Arecanut'];
   const cropKeys = Object.keys(CROP_PROFILES);
 
   return (
     <div className="w-full flex flex-col gap-6 text-left">
-      {/* Top Header & Language Switcher */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-white border border-emerald-500/20 shadow-sm">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-emerald-700 uppercase tracking-wider mb-1">
-            <BookOpen className="w-4 h-4 text-emerald-600" />
-            <span>{lang === 'kn' ? 'ಸಂಪೂರ್ಣ ಕೃಷಿ ಕೈಪಿಡಿ' : 'Complete Crop Cultivation Guide'}</span>
-          </div>
-          <h3 className="text-xl sm:text-2xl font-bold text-slate-900 font-['Space_Grotesk']">
-            {lang === 'kn' ? `${crop.kannada_name} ಬೆಳೆಯುವ ವಿಧಾನ` : `How to Cultivate ${crop.name}`}
-          </h3>
-          <p className="text-xs text-slate-500 mt-0.5">
-            {lang === 'kn' 
-              ? 'ದಕ್ಷಿಣ ಕನ್ನಡದ ಹವಾಮಾನಕ್ಕೆ ಸೂಕ್ತವಾದ ಹಂತ-ಹಂತದ ವೈಜ್ಞಾನಿಕ ಮಾರ್ಗದರ್ಶಿ' 
-              : 'Step-by-step agronomic guide tailored to Dakshina Kannada soil & monsoon'}
-          </p>
+      {/* Top Header */}
+      <div className="p-5 rounded-2xl bg-white border border-emerald-500/20 shadow-sm">
+        <div className="flex items-center gap-2 text-xs font-semibold text-emerald-800 mb-1">
+          <BookOpen className="w-4 h-4 text-emerald-600" />
+          <span>{lang === 'kn' ? 'ಸಂಪೂರ್ಣ ಕೃಷಿ ಕೈಪಿಡಿ' : 'Complete Crop Cultivation Guide'}</span>
         </div>
-
-        {/* Language Switcher Buttons */}
-        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-100 border border-slate-200 self-start sm:self-auto">
-          <Globe className="w-4 h-4 text-slate-500 ml-2" />
-          <button
-            type="button"
-            onClick={() => handleLang('kn')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-              lang === 'kn'
-                ? 'bg-emerald-600 text-white shadow-sm'
-                : 'text-slate-600 hover:text-emerald-700 hover:bg-slate-200/60'
-            }`}
-          >
-            ಕನ್ನಡ (Kannada)
-          </button>
-          <button
-            type="button"
-            onClick={() => handleLang('en')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-              lang === 'en'
-                ? 'bg-emerald-600 text-white shadow-sm'
-                : 'text-slate-600 hover:text-emerald-700 hover:bg-slate-200/60'
-            }`}
-          >
-            English
-          </button>
-        </div>
+        <h3 className="text-xl sm:text-2xl font-bold text-slate-900 font-['Space_Grotesk']">
+          {lang === 'kn' ? `${crop.kannada_name} ಬೆಳೆಯುವ ವಿಧಾನ` : `How to Cultivate ${crop.name}`}
+        </h3>
+        <p className="text-xs text-slate-500 mt-0.5">
+          {lang === 'kn' 
+            ? 'ದಕ್ಷಿಣ ಕನ್ನಡದ ಹವಾಮಾನಕ್ಕೆ ಸೂಕ್ತವಾದ ಹಂತ-ಹಂತದ ವೈಜ್ಞಾನಿಕ ಮಾರ್ಗದರ್ಶಿ' 
+            : 'Step-by-step agronomic guide tailored to Dakshina Kannada soil & monsoon'}
+        </p>
       </div>
 
       {/* Crop Selector Chips */}
@@ -69,24 +36,24 @@ export default function CultivationGuide({ initialCrop = 'Arecanut', language = 
           return (
             <button
               key={key}
-              type="button"
               onClick={() => setSelectedCropKey(key)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all border flex items-center gap-2 cursor-pointer ${
+              className={`min-h-[44px] px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
                 isSelected
-                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-600/20'
-                  : 'bg-white text-slate-700 border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/50'
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'bg-white text-slate-700 hover:bg-emerald-50 border border-slate-200'
               }`}
             >
+              <span>{c.icon}</span>
               <span>{lang === 'kn' ? c.kannada_name : c.name}</span>
             </button>
           );
         })}
       </div>
 
-      {/* Crop Overview Card with Real Imagery */}
+      {/* Main Photographic Agronomy Showcase */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-        {/* Left Column: Visual Highlights */}
-        <div className="lg:col-span-5 rounded-2xl bg-white border border-emerald-500/20 overflow-hidden shadow-sm flex flex-col">
+        {/* Left Column: Crop Identity Photo & Key Metrics */}
+        <div className="lg:col-span-5 rounded-2xl bg-white border border-slate-200 overflow-hidden shadow-sm flex flex-col justify-between">
           <div className="relative h-56 sm:h-64 overflow-hidden group">
             <img
               src={crop.primary_image}
@@ -94,7 +61,7 @@ export default function CultivationGuide({ initialCrop = 'Arecanut', language = 
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-4 text-white">
-              <span className="text-[11px] font-mono font-semibold text-emerald-300 uppercase">
+              <span className="text-xs font-semibold text-emerald-300">
                 {crop.scientific_name}
               </span>
               <h4 className="text-xl font-bold">
@@ -146,7 +113,7 @@ export default function CultivationGuide({ initialCrop = 'Arecanut', language = 
               <p className="text-xs font-bold text-slate-800">
                 {lang === 'kn' ? 'ಹಸಿರು ತೋಟ' : 'Field Plantation'}
               </p>
-              <p className="text-[10px] text-slate-500 mt-0.5">
+              <p className="text-xs text-slate-500 mt-0.5">
                 {lang === 'kn' ? 'ದಕ್ಷಿಣ ಕನ್ನಡದ ಫಲವತ್ತಾದ ಕಣಿವೆ' : 'Dakshina Kannada Valley'}
               </p>
             </div>
@@ -164,7 +131,7 @@ export default function CultivationGuide({ initialCrop = 'Arecanut', language = 
               <p className="text-xs font-bold text-slate-800">
                 {lang === 'kn' ? 'ಆರೋಗ್ಯಕರ ಸಸಿಗಳು' : 'Nursery Saplings'}
               </p>
-              <p className="text-[10px] text-slate-500 mt-0.5">
+              <p className="text-xs text-slate-500 mt-0.5">
                 {lang === 'kn' ? 'ಪ್ರಮಾಣೀಕೃತ ಕೃಷಿ ಸಸಿಗಳು' : 'Certified Rootstock'}
               </p>
             </div>
@@ -182,7 +149,7 @@ export default function CultivationGuide({ initialCrop = 'Arecanut', language = 
               <p className="text-xs font-bold text-slate-800">
                 {lang === 'kn' ? 'ಕಟಾವು & ಒಣಗಿಸುವಿಕೆ' : 'Harvest & Curing'}
               </p>
-              <p className="text-[10px] text-slate-500 mt-0.5">
+              <p className="text-xs text-slate-500 mt-0.5">
                 {lang === 'kn' ? 'ಉತ್ತಮ ಗುಣಮಟ್ಟದ ಚಾಲಿ/ಬೆಳೆ' : 'APMC Grade-1 Quality'}
               </p>
             </div>
@@ -210,7 +177,7 @@ export default function CultivationGuide({ initialCrop = 'Arecanut', language = 
                   <div className="w-10 h-10 rounded-xl bg-emerald-100/70 border border-emerald-300 text-lg flex items-center justify-center">
                     {st.icon}
                   </div>
-                  <span className="text-[11px] font-mono font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                  <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
                     {lang === 'kn' ? `ಹಂತ ${st.step}` : `Step ${st.step}`}
                   </span>
                 </div>
@@ -224,7 +191,7 @@ export default function CultivationGuide({ initialCrop = 'Arecanut', language = 
                 </p>
               </div>
 
-              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center text-[11px] font-semibold text-emerald-700">
+              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center text-xs font-semibold text-emerald-700">
                 <CheckCircle2 className="w-3.5 h-3.5 mr-1 text-emerald-600" />
                 <span>{lang === 'kn' ? 'ಶಿಫಾರಸು ಮಾಡಿದ ಪದ್ಧತಿ' : 'Recommended Protocol'}</span>
               </div>
@@ -235,4 +202,3 @@ export default function CultivationGuide({ initialCrop = 'Arecanut', language = 
     </div>
   );
 }
-

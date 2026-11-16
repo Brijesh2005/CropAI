@@ -1,6 +1,6 @@
 import React from 'react';
 import { REGIONAL_DATA } from '../data/agriculturalData';
-import { MapPin, CloudRain, Mountain, Compass, Waves, CheckCircle2 } from 'lucide-react';
+import { CloudRain, Mountain, Compass, Waves } from 'lucide-react';
 
 export default function RegionalLandscapeCard({ talukName = 'Puttur', language = 'kn' }) {
   // Normalize taluk name
@@ -26,7 +26,7 @@ export default function RegionalLandscapeCard({ talukName = 'Puttur', language =
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent flex flex-col justify-end p-6 text-white">
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-emerald-600/90 text-white uppercase tracking-wider">
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-600/90 text-white">
               {language === 'kn' ? 'ನೈಜ ಸ್ಥಳೀಯ ಭೂಪ್ರದೇಶ' : 'Real-Life Region Landscape'}
             </span>
             <span className="text-slate-300 text-xs">• Dakshina Kannada</span>

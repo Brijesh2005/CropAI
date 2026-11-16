@@ -1,6 +1,6 @@
 import React from 'react';
 import { BUYING_WORKFLOW, OFFICIAL_CONTACTS_DIRECTORY, REGIONAL_DATA } from '../data/agriculturalData';
-import { ShoppingCart, PhoneCall, Building2, MapPin, Users, HelpCircle, CheckCircle2, ChevronRight, ExternalLink } from 'lucide-react';
+import { ShoppingCart, PhoneCall, Building2, Users, CheckCircle2, ExternalLink } from 'lucide-react';
 
 export default function LandBuyingGuide({ selectedTaluk = 'Puttur', language = 'kn' }) {
   // Normalize taluk name

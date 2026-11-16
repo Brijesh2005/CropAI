@@ -10,13 +10,18 @@ import AboutView from './components/AboutView';
 import GeofenceModal from './components/GeofenceModal';
 import MetricsModal from './components/MetricsModal';
 import AuthModal from './components/AuthModal';
-import { Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
+import ToastContainer from './components/Toast';
+import { AlertCircle, RefreshCw } from 'lucide-react';
+import { useLang } from './i18n/LanguageContext';
 
 export default function App() {
+  const { lang, t } = useLang();
+
   const [activeTab, setActiveTab] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get('tab') || 'dashboard';
   }); // 'dashboard' | 'analyze' | 'history' | 'models' | 'about'
+  
   const [analyzeStep, setAnalyzeStep] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get('step') || 'map';
@@ -30,6 +35,7 @@ export default function App() {
       return null;
     }
   });
+
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get('auth') === '1';
@@ -46,6 +52,7 @@ export default function App() {
   const [prediction, setPrediction] = useState(null);
   const [isPredicting, setIsPredicting] = useState(false);
   const [geofenceError, setGeofenceError] = useState(null);
+  const [backendError, setBackendError] = useState(null);
   const [isMetricsOpen, setIsMetricsOpen] = useState(false);
   const [taluks, setTaluks] = useState(null);
   const [history, setHistory] = useState(() => {
@@ -57,24 +64,10 @@ export default function App() {
     }
   });
 
-  // Load Taluk coordinates and initial prediction
-  useEffect(() => {
-    fetch('/api/taluks')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.taluks) setTaluks(data.taluks);
-      })
-      .catch((err) => console.error("Error loading taluks:", err));
-
-    // Run initial prediction for default location
-    const params = new URLSearchParams(window.location.search);
-    const autoResults = params.get('step') === 'results';
-    executePrediction(12.7667, 75.2000, 'Puttur Agricultural Sector', 'Puttur', 2.34, autoResults);
-  }, []);
-
   const executePrediction = async (lat, lon, place_name, taluk, area, shouldTransitionToResults = false) => {
     setIsPredicting(true);
     setGeofenceError(null);
+    setBackendError(null);
 
     try {
       const res = await fetch('/api/predict', {
@@ -95,11 +88,7 @@ export default function App() {
         if (data.detail && data.detail.error === 'OUTSIDE_DAKSHINA_KANNADA') {
           setGeofenceError(data.detail);
         } else {
-          setGeofenceError({
-            message: data.detail?.message || 'Selected location cannot be predicted.',
-            lat,
-            lon
-          });
+          setBackendError(data.detail?.message || data.message || 'Selected location could not be predicted. Please try again.');
         }
         setAnalyzeStep('map');
         return;
@@ -109,28 +98,34 @@ export default function App() {
       setSelectedCoords({
         lat,
         lon,
-        place_name: data.location_summary.place_name,
-        taluk: data.location_summary.taluk
+        place_name: data.location_summary?.place_name || place_name,
+        taluk: data.location_summary?.taluk || taluk
       });
 
-      // Save to history
+      // Phase 6: Store full ISO date and quintals/acre in History
+      const primaryRec = data.top_recommendations?.[0] || {};
+      const yieldPerAcreQ = primaryRec.yield_quintals_per_acre 
+        || (data.yield_forecast?.expected_yield_per_acre ? (data.yield_forecast.expected_yield_per_acre * 4.047).toFixed(1) : '12.5');
+
       const newHistoryItem = {
         id: `dk-${Date.now()}`,
-        place_name: data.location_summary.place_name,
-        taluk: data.location_summary.taluk,
+        place_name: data.location_summary?.place_name || place_name,
+        taluk: data.location_summary?.taluk || taluk,
         lat,
         lon,
         area_acres: area,
         crop: data.recommended_crop,
-        yield_forecast: `${(data.yield_forecast?.expected_yield_per_acre * 2.47105 || 4.82).toFixed(2)} T/Ha`,
-        date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        yield_forecast: `${yieldPerAcreQ} Q/acre`,
+        date: new Date().toISOString()
       };
 
       setHistory((prev) => {
         const updated = [newHistoryItem, ...prev.slice(0, 19)];
         try {
           localStorage.setItem('terravision_history', JSON.stringify(updated));
-        } catch (e) {}
+        } catch (e) {
+          console.warn('Could not save history to localStorage', e);
+        }
         return updated;
       });
 
@@ -139,28 +134,41 @@ export default function App() {
         if (queryParams.get('step') === 'results') {
           setAnalyzeStep('results');
         } else {
-          // Show scanning animation briefly, then transition to results
           setAnalyzeStep('scanning');
         }
       }
     } catch (err) {
       console.error("Prediction failed:", err);
-      setGeofenceError({
-        message: 'Network error or backend connection failed. Ensure FastAPI is running on port 8000.',
-        lat,
-        lon
-      });
+      setBackendError('Network error or server connection failed. Please ensure the backend is running and try again.');
       setAnalyzeStep('map');
     } finally {
       setIsPredicting(false);
     }
   };
 
+  // Load Taluk coordinates
+  useEffect(() => {
+    fetch('/api/taluks')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.taluks) setTaluks(data.taluks);
+      })
+      .catch((err) => console.error("Error loading taluks:", err));
+
+    // Phase 6: Run on-mount prediction ONLY if ?step=results is explicitly in the URL
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('step') === 'results') {
+      setTimeout(() => {
+        executePrediction(12.7667, 75.2000, 'Puttur Agricultural Sector', 'Puttur', 2.34, true);
+      }, 0);
+    }
+  }, []);
+
   const handleLocationPicked = (lat, lon, place_name, taluk) => {
     setSelectedCoords({
       lat,
       lon,
-      place_name: place_name || 'Selected Sector',
+      place_name: place_name || 'Selected Farm Plot',
       taluk: taluk || selectedCoords.taluk
     });
   };
@@ -180,6 +188,18 @@ export default function App() {
 
   const handleScanComplete = () => {
     setAnalyzeStep('results');
+  };
+
+  const handleDeleteHistoryItem = (id) => {
+    setHistory((prev) => {
+      const updated = prev.filter((item) => item.id !== id);
+      try {
+        localStorage.setItem('terravision_history', JSON.stringify(updated));
+      } catch (e) {
+        console.warn('Could not update history:', e);
+      }
+      return updated;
+    });
   };
 
   const handleOpenAuth = (mode = 'login') => {
@@ -217,8 +237,6 @@ export default function App() {
             setAnalyzeStep('map');
           }
         }}
-        onOpenMetrics={() => setIsMetricsOpen(true)}
-        activeTaluk={selectedCoords?.taluk}
         user={user}
         onOpenAuth={handleOpenAuth}
         onLogout={handleLogout}
@@ -249,24 +267,90 @@ export default function App() {
 
         {activeTab === 'analyze' && (
           <div className="w-full flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col text-left">
-            {/* Header sub-bar for Analyze Command Center */}
+            {/* Phase 5: 3-Step Progress Indicator (1 Pick land -> 2 Analyzing -> 3 Results) */}
+            <div className="mb-6 flex items-center justify-center max-w-md mx-auto w-full">
+              <div className="flex items-center w-full justify-between">
+                {/* Step 1 */}
+                <button
+                  onClick={() => setAnalyzeStep('map')}
+                  className={`flex items-center gap-2 text-xs font-bold transition-all cursor-pointer ${
+                    analyzeStep === 'map' ? 'text-emerald-800' : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
+                    analyzeStep === 'map' ? 'bg-emerald-600 text-white' : 'bg-emerald-100 text-emerald-800'
+                  }`}>1</span>
+                  <span>{lang === 'kn' ? '೧. ಭೂಮಿ ಆಯ್ಕೆ' : '1. Pick land'}</span>
+                </button>
+
+                <div className={`flex-1 h-0.5 mx-3 transition-colors ${
+                  analyzeStep !== 'map' ? 'bg-emerald-600' : 'bg-slate-200'
+                }`} />
+
+                {/* Step 2 */}
+                <div className={`flex items-center gap-2 text-xs font-bold ${
+                  analyzeStep === 'scanning' ? 'text-emerald-800' : analyzeStep === 'results' ? 'text-emerald-700' : 'text-slate-400'
+                }`}>
+                  <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
+                    analyzeStep === 'scanning' ? 'bg-emerald-600 text-white' : analyzeStep === 'results' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-400'
+                  }`}>2</span>
+                  <span>{lang === 'kn' ? '೨. ಪರಿಶೀಲನೆ' : '2. Analyzing'}</span>
+                </div>
+
+                <div className={`flex-1 h-0.5 mx-3 transition-colors ${
+                  analyzeStep === 'results' ? 'bg-emerald-600' : 'bg-slate-200'
+                }`} />
+
+                {/* Step 3 */}
+                <div className={`flex items-center gap-2 text-xs font-bold ${
+                  analyzeStep === 'results' ? 'text-emerald-800 font-extrabold' : 'text-slate-400'
+                }`}>
+                  <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
+                    analyzeStep === 'results' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-400'
+                  }`}>3</span>
+                  <span>{lang === 'kn' ? '೩. ಫಲಿತಾಂಶ' : '3. Results'}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Inline Error Notice with Retry Button */}
+            {backendError && (
+              <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-red-800">
+                <div className="flex items-center gap-2.5">
+                  <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
+                  <span>{backendError}</span>
+                </div>
+                <button
+                  onClick={() => {
+                    setBackendError(null);
+                    executePrediction(selectedCoords.lat, selectedCoords.lon, selectedCoords.place_name, selectedCoords.taluk, farmArea, true);
+                  }}
+                  className="btn-primary min-h-[38px] px-3.5 py-1.5 text-xs bg-red-600 hover:bg-red-700 self-start sm:self-auto"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>{t('res.retry_btn', 'Try again')}</span>
+                </button>
+              </div>
+            )}
+
+            {/* Header sub-bar for Map Step */}
             {analyzeStep === 'map' && (
-              <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <div className="flex items-center gap-2 text-xs font-mono font-bold text-emerald-700 mb-1">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-ping" />
-                    <span>ದಕ್ಷಿಣ ಕನ್ನಡ ಜಿಯೋಸ್ಪೇಷಿಯಲ್ ಕೃಷಿ ನಕ್ಷೆ // SATELLITE ENGINE</span>
+                  <div className="flex items-center gap-2 text-xs font-semibold text-emerald-800 mb-1">
+                    <span className="w-2 h-2 rounded-full bg-emerald-600" />
+                    <span>{t('map.header_sub', 'Dakshina Kannada Farm Map')}</span>
                   </div>
                   <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-['Space_Grotesk'] tracking-tight">
-                    Select Your Land or Search Village
+                    {t('map.header_title', 'Select your land or search village')}
                   </h2>
                 </div>
-                <div className="text-xs font-semibold text-slate-500 flex items-center gap-2">
-                  <span className="text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-                    Dakshina Kannada Geofenced
+                <div className="text-xs font-medium text-slate-600 flex items-center gap-2">
+                  <span className="text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 font-medium">
+                    {t('map.header_badge', 'Dakshina Kannada')}
                   </span>
                   <span>•</span>
-                  <span>Zoom in to view fields, trees, and survey plots</span>
+                  <span>{t('map.header_tip', 'Zoom in to view fields, trees, and survey plots')}</span>
                 </div>
               </div>
             )}
@@ -323,7 +407,14 @@ export default function App() {
               setHistory([]);
               try {
                 localStorage.removeItem('terravision_history');
-              } catch (e) {}
+              } catch (e) {
+                console.warn('Could not clear history:', e);
+              }
+            }}
+            onDeleteRecord={handleDeleteHistoryItem}
+            onStartAnalyze={() => {
+              setActiveTab('analyze');
+              setAnalyzeStep('map');
             }}
           />
         )}
@@ -343,16 +434,16 @@ export default function App() {
       </main>
 
       {/* Farmer-Friendly Clean White Footer */}
-      <footer className="w-full bg-white border-t border-emerald-500/20 py-8 px-4 sm:px-6 lg:px-8 font-mono text-xs text-slate-600 shadow-sm mt-auto">
+      <footer className="w-full bg-white border-t border-emerald-500/20 py-8 px-4 sm:px-6 lg:px-8 text-xs text-slate-600 shadow-sm mt-auto">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" />
-            <span className="text-slate-900 font-bold">TERRAVISION FARM AI</span>
-            <span className="text-slate-400">|</span>
-            <span>Satellite Precision Agriculture for Dakshina Kannada, Karnataka</span>
+            <span className="text-slate-900 font-bold">{t('footer.brand', 'TerraVision Farm AI')}</span>
+            <span className="text-slate-300">|</span>
+            <span>{t('footer.sub', 'Satellite Precision Agriculture for Dakshina Kannada, Karnataka')}</span>
           </div>
           <div className="text-slate-500">
-            Sentinel-2 L2A BOA • Bhoomi RTC Integration • ExtraTrees Meta-Fusion v2.0 (88.3% Accuracy)
+            {t('footer.tech', 'Bhoomi RTC • Kaveri EC • Dakshina Kannada Agro-Climatic Intelligence')}
           </div>
         </div>
       </footer>
@@ -361,12 +452,12 @@ export default function App() {
       <GeofenceModal
         errorData={geofenceError}
         onClose={() => setGeofenceError(null)}
-        onSelectTaluk={(t) => {
+        onSelectTaluk={(tItem) => {
           setSelectedCoords({
-            lat: t.lat,
-            lon: t.lon,
-            place_name: t.place_name,
-            taluk: t.taluk
+            lat: tItem.lat,
+            lon: tItem.lon,
+            place_name: tItem.place_name,
+            taluk: tItem.taluk
           });
           setGeofenceError(null);
         }}
@@ -385,6 +476,9 @@ export default function App() {
         initialMode={authMode}
         onAuthSuccess={handleAuthSuccess}
       />
+
+      {/* Global Notifications Toast Container */}
+      <ToastContainer />
     </div>
   );
 }
