@@ -14,7 +14,7 @@ export default function ModelsView({ onOpenMetricsModal }) {
   return (
     <div className="w-full max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8 flex flex-col gap-10 text-left">
       {/* Header */}
-      <div className="border-b border-slate-200 pb-6">
+      <div className="p-6 sm:p-8 rounded-2xl bg-white/90 backdrop-blur-md border border-emerald-500/20 shadow-sm">
         <div className="flex items-center gap-2 text-xs font-semibold text-emerald-800 mb-2">
           <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 flex items-center gap-1.5">
             <Cpu className="w-3.5 h-3.5 text-emerald-700" />

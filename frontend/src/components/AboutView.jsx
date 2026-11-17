@@ -5,7 +5,7 @@ export default function AboutView({ onStartAnalyze }) {
   return (
     <div className="w-full max-w-5xl mx-auto py-24 px-4 sm:px-6 lg:px-8 flex flex-col gap-12 text-left">
       {/* Header */}
-      <div className="text-center max-w-3xl mx-auto">
+      <div className="p-8 sm:p-10 rounded-3xl bg-white/90 backdrop-blur-md border border-emerald-500/20 shadow-md text-center max-w-3xl mx-auto">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-100 border border-emerald-300 text-xs font-semibold text-emerald-800 mb-4 shadow-sm">
           <Satellite className="w-4 h-4 text-emerald-700" />
           <span>TerraVision Farm AI Mission</span>

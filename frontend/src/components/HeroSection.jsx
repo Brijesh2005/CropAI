@@ -11,7 +11,7 @@ export default function HeroSection({ onStartAnalyze, onExploreSystem }) {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
           
           {/* Left Hero Column: Typography & CTAs */}
-          <div className="lg:col-span-7 flex flex-col items-start z-10">
+          <div className="lg:col-span-7 flex flex-col items-start z-10 p-6 sm:p-8 rounded-3xl bg-white/90 backdrop-blur-md border border-emerald-500/20 shadow-lg">
             {/* Announcement Pill Badge */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-100 border border-emerald-300 text-xs font-semibold text-emerald-800 shadow-sm mb-6">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" />

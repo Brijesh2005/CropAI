@@ -246,17 +246,17 @@ export default function App() {
     <div className="min-h-screen relative text-slate-800 flex flex-col selection:bg-emerald-600 selection:text-white">
       {/* Full-bleed Fixed HD Agricultural Background - Dynamic per page */}
       <div 
-        className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-slate-50"
+        className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-slate-900"
         aria-hidden="true"
       >
         <img
           key={currentBg}
           src={currentBg}
           alt=""
-          className="w-full h-full object-cover object-center transition-all duration-700 ease-in-out opacity-85"
+          className="w-full h-full object-cover object-center transition-opacity duration-700 ease-in-out opacity-95"
         />
-        {/* Soft atmospheric translucent veil ensuring WCAG AA contrast & readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-white/92 via-emerald-50/85 to-white/94 backdrop-blur-[1px]" />
+        {/* Vibrant atmospheric gradient wash so the HD photo is vivid & clearly visible while cards pop */}
+        <div className="absolute inset-0 bg-gradient-to-b from-white/35 via-white/15 to-white/40" />
       </div>
 
       {/* Floating Glass Navbar */}
@@ -299,7 +299,7 @@ export default function App() {
         {activeTab === 'analyze' && (
           <div className="w-full flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col text-left">
             {/* Phase 5: 3-Step Progress Indicator (1 Pick land -> 2 Analyzing -> 3 Results) */}
-            <div className="mb-6 flex items-center justify-center max-w-md mx-auto w-full">
+            <div className="mb-6 flex items-center justify-center max-w-md mx-auto w-full p-2.5 rounded-full bg-white/90 backdrop-blur-md border border-emerald-500/20 shadow-sm">
               <div className="flex items-center w-full justify-between">
                 {/* Step 1 */}
                 <button
@@ -366,7 +366,7 @@ export default function App() {
 
             {/* Header sub-bar for Map Step */}
             {analyzeStep === 'map' && (
-              <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="mb-4 p-5 rounded-2xl bg-white/90 backdrop-blur-md border border-emerald-500/20 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <div className="flex items-center gap-2 text-xs font-semibold text-emerald-800 mb-1">
                     <span className="w-2 h-2 rounded-full bg-emerald-600" />

@@ -25,7 +25,7 @@ export default function DashboardView({ onStartAnalyze, onExploreSystem, onSelec
 
       {/* 2. Featured 7 Dakshina Kannada Agricultural Sectors (With Real Photos) */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4 pb-4 border-b border-slate-200">
+        <div className="p-6 rounded-2xl bg-white/90 backdrop-blur-md border border-emerald-500/20 shadow-sm flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
           <div>
             <div className="flex items-center gap-2 text-xs font-semibold text-emerald-800 mb-1">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" />

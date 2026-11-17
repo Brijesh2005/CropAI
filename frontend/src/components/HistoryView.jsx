@@ -34,7 +34,7 @@ export default function HistoryView({
   return (
     <div className="w-full max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8 text-left">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-6 mb-8">
+      <div className="p-6 rounded-2xl bg-white/90 backdrop-blur-md border border-emerald-500/20 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold text-emerald-800 mb-1">
             <History className="w-4 h-4 text-emerald-600" />
