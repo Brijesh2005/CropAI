@@ -253,10 +253,10 @@ export default function App() {
           key={currentBg}
           src={currentBg}
           alt=""
-          className="w-full h-full object-cover object-center transition-opacity duration-700 ease-in-out opacity-95"
+          className="w-full h-full object-cover object-center transition-opacity duration-700 ease-in-out contrast-125 saturate-115 brightness-95"
         />
-        {/* Vibrant atmospheric gradient wash so the HD photo is vivid & clearly visible while cards pop */}
-        <div className="absolute inset-0 bg-gradient-to-b from-white/35 via-white/15 to-white/40" />
+        {/* Crisp high-contrast vignette overlay - removes any milky haze and boosts dynamic range */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/15 via-transparent to-black/25" />
       </div>
 
       {/* Floating Glass Navbar */}
