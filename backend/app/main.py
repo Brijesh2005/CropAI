@@ -1,6 +1,8 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from .core.config import settings
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse, JSONResponse
+from .core.config import WORKSPACE_DIR, settings
 from .api.routes import router
 from .api.auth_routes import auth_router, users_router
 from .api.gis_routes import gis_router
@@ -50,15 +52,37 @@ app.include_router(users_router, prefix="/api/v1/users", tags=["Users"])
 app.include_router(users_router, prefix="/api/users", tags=["Users"])
 app.include_router(users_router, prefix="/users", tags=["Users"])
 
-@app.get("/")
-async def root():
+@app.get("/api/health")
+async def health_check():
     return {
         "system": settings.APP_NAME,
         "version": settings.APP_VERSION,
         "region": settings.DISTRICT_NAME,
-        "status": "ONLINE",
-        "docs_url": "/docs"
+        "status": "ONLINE"
     }
+
+# Serve frontend static assets if built (unified full-stack deployment)
+frontend_dist = WORKSPACE_DIR / "frontend" / "dist"
+if frontend_dist.is_dir() and (frontend_dist / "index.html").is_file():
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        if full_path.startswith(("api", "docs", "redoc", "openapi.json")):
+            return JSONResponse(status_code=404, content={"detail": "Not Found"})
+        resolved_dist = frontend_dist.resolve()
+        target = (frontend_dist / full_path).resolve()
+        if str(target).startswith(str(resolved_dist)) and target.is_file():
+            return FileResponse(str(target))
+        return FileResponse(str(frontend_dist / "index.html"))
+else:
+    @app.get("/")
+    async def root():
+        return {
+            "system": settings.APP_NAME,
+            "version": settings.APP_VERSION,
+            "region": settings.DISTRICT_NAME,
+            "status": "ONLINE",
+            "docs_url": "/docs"
+        }
 
 if __name__ == "__main__":
     import uvicorn
