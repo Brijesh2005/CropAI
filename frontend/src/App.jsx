@@ -226,8 +226,39 @@ export default function App() {
     setUser(null);
   };
 
+  // Determine current high-definition farming background per page & step
+  const getPageBackground = () => {
+    if (activeTab === 'dashboard') return '/images/backgrounds/bg-dashboard.jpg';
+    if (activeTab === 'analyze') {
+      if (analyzeStep === 'scanning') return '/images/backgrounds/bg-scanning.jpg';
+      if (analyzeStep === 'results') return '/images/backgrounds/bg-results.jpg';
+      return '/images/backgrounds/bg-map.jpg';
+    }
+    if (activeTab === 'history') return '/images/backgrounds/bg-history.jpg';
+    if (activeTab === 'models') return '/images/backgrounds/bg-models.jpg';
+    if (activeTab === 'about') return '/images/backgrounds/bg-about.jpg';
+    return '/images/backgrounds/bg-dashboard.jpg';
+  };
+
+  const currentBg = getPageBackground();
+
   return (
-    <div className="min-h-screen farm-bg text-slate-800 flex flex-col selection:bg-emerald-600 selection:text-white">
+    <div className="min-h-screen relative text-slate-800 flex flex-col selection:bg-emerald-600 selection:text-white">
+      {/* Full-bleed Fixed HD Agricultural Background - Dynamic per page */}
+      <div 
+        className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-slate-50"
+        aria-hidden="true"
+      >
+        <img
+          key={currentBg}
+          src={currentBg}
+          alt=""
+          className="w-full h-full object-cover object-center transition-all duration-700 ease-in-out opacity-85"
+        />
+        {/* Soft atmospheric translucent veil ensuring WCAG AA contrast & readability */}
+        <div className="absolute inset-0 bg-gradient-to-b from-white/92 via-emerald-50/85 to-white/94 backdrop-blur-[1px]" />
+      </div>
+
       {/* Floating Glass Navbar */}
       <Navbar
         activeTab={activeTab}
@@ -243,7 +274,7 @@ export default function App() {
       />
 
       {/* Main View Switcher */}
-      <main className="flex-1 w-full pt-16 flex flex-col">
+      <main className="relative z-10 flex-1 w-full pt-16 flex flex-col">
         {activeTab === 'dashboard' && (
           <DashboardView
             onStartAnalyze={() => {
@@ -434,7 +465,7 @@ export default function App() {
       </main>
 
       {/* Farmer-Friendly Clean White Footer */}
-      <footer className="w-full bg-white border-t border-emerald-500/20 py-8 px-4 sm:px-6 lg:px-8 text-xs text-slate-600 shadow-sm mt-auto">
+      <footer className="relative z-10 w-full bg-white/95 backdrop-blur-md border-t border-emerald-500/20 py-8 px-4 sm:px-6 lg:px-8 text-xs text-slate-600 shadow-sm mt-auto">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" />
